@@ -1,6 +1,6 @@
 
 ## Backstory
-This was a project for a Halloween costume (many great projects are for Halloween costumes) where I needed a cool spooky lantern with green fire. Initially the plan was to do an LED grid and animate the fire - I had a whole proof-of-concept and everything - but mounting the LEDs in a grid bi-directionally in a metal lantern clearly not meant for it proved to be too challenging. So ring lighting was the next best thing.
+This was a project for a Halloween costume (many great projects are for Halloween costumes) where I needed a cool spooky lantern with green fire. Initially the plan was to do an LED grid and animate the fire - I had a whole [proof-of-concept](https://github.com/Morgan10E/flicker_sim) and everything - but mounting the LEDs in a grid bi-directionally in a metal lantern clearly not meant for it proved to be too challenging. So ring lighting was the next best thing.
 
 ## Overview
 This project assumes the LEDs are arrayed in rings, with the LED string beginning and ending at the bottom. Each half strip is simulated independently to get a nice random flickering effect. There are three key portions of the simulation:
