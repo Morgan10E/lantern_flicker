@@ -6,7 +6,6 @@ import neopixel
 
 import fire
 import shutter
-import half_ring
 
 SHUTTER_PIN = board.D3
 SHUTTER_TIME = .1 # seconds
@@ -18,10 +17,6 @@ FIRE_RATE = 10 # flickers per second
 FIRE_VARIANCE = 0.15
 FIRE_INTENSITY = 200
 MASSIVE_REDUCER = 10
-
-EMBER_HEIGHT = 0.1
-WISP_SPEED = 0.1 # seconds for wisp to travel to top
-WISP_RATE = 3 # seconds between wisps
 
 NUM_PIXELS = 72
 PIXEL_RING = math.ceil(NUM_PIXELS / 2)
@@ -52,10 +47,6 @@ randG = random.randrange(255)
 randB = random.randrange(255)
 print(f"{randR}, {randG}, {randB}")
 
-halfRings = []
-for i in range(4):
-    halfRings.append(half_ring.FireFlicker(HALF_RING, 6, EMBER_HEIGHT, WISP_SPEED, WISP_RATE))
-print("starting")
 
 while True:
     boardPixel[0] = (randR, randG, randB)
@@ -63,16 +54,21 @@ while True:
     clearPixels()
     # setAllPixels()
 
-    pixels = []
-    for i in range(4):
-        halfRingPixels = halfRings[i].getFlicker(timeElapsed)
-        if i % 2 == 1:
-            halfRingPixels.reverse()
-        pixels = pixels + halfRingPixels
-    
-    for i in range(len(pixels)):
-        firePixels[i] = pixels[i]
-    
+    time.sleep(SLEEP_DUR)
+
+    # standard flicker
+    fireHeight = lanternFire.getStandardFireHeight(timeElapsed) * HALF_RING
+    for i in range(4): # on each half ring
+        randomness = FIRE_VARIANCE * random.uniform(-1,1)
+        cornerHeight = fireHeight + randomness * HALF_RING
+        for k in range(HALF_RING):
+            pixelHeight = k if i % 2 == 0 else HALF_RING - k
+            pixelValue = FIRE_INTENSITY
+            if pixelHeight < cornerHeight:
+                pixelValue = FIRE_INTENSITY + (255 - FIRE_INTENSITY) * (cornerHeight - pixelHeight) / cornerHeight
+            else:
+                pixelValue = (FIRE_INTENSITY - FIRE_INTENSITY * (pixelHeight - cornerHeight) / (HALF_RING - cornerHeight)) / MASSIVE_REDUCER
+            firePixels[i * HALF_RING + k] = (0, pixelValue, 0)
     
     # for i in range(NUM_PIXELS):
     #     if i % PIXEL_RING < fireHeight or (NUM_PIXELS - i) % PIXEL_RING < fireHeight:
