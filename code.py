@@ -21,7 +21,7 @@ FIRE_PIXEL_PIN = board.D8
 
 EMBER_HEIGHT = 0.1
 WISP_SPEED = 0.1 # seconds for wisp to travel to top
-WISP_RATE = 3 # seconds between wisps
+WISP_RATE = 1 # seconds between wisps
 
 NUM_PIXELS = 72
 NUM_RINGS = 2
