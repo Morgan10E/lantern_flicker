@@ -7,6 +7,7 @@ This project assumes the LEDs are arrayed in rings, with the LED string beginnin
 1. Embers
 2. Wisps
 3. Shutter
+
 The embers and wisps are part of the fire simulation and are handled by the half ring. The embers are a constant flickering glow, while the wisps are patches of light that sweep up the lantern.
 The shutter is an independent control triggered by a button that 'closes' the lantern.
 
