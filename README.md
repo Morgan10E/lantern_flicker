@@ -3,13 +3,16 @@
 This was a project for a Halloween costume (many great projects are for Halloween costumes) where I needed a cool spooky lantern with green fire. Initially the plan was to do an LED grid and animate the fire - I had a whole [proof-of-concept](https://github.com/Morgan10E/flicker_sim) and everything - but mounting the LEDs in a grid bi-directionally in a metal lantern clearly not meant for it proved to be too challenging. So ring lighting was the next best thing.
 
 ## Overview
-This project assumes the LEDs are arrayed in rings, with the LED string beginning and ending at the bottom. Each half strip is simulated independently to get a nice random flickering effect. There are three key portions of the simulation:
-1. Embers
-2. Wisps
-3. Shutter
+This project assumes the LEDs are arrayed in rings, with the LED string beginning and ending at the bottom. Each half strip is simulated independently to get a nice random flickering effect. The half ring of pixels are managed by the Pixels class (which is currently basically just a wrapper on an array, with 0 being the pixel index at the bottom of the lantern and HALF_RING - 1 being the index of the pixel at the top). There are three key portions of the simulation that operate on our Pixels:
+1. Embers - a constant flickering glow
+2. Wisps - patches of light that sweep up the lantern
+3. Shutter - an independent control triggered by a button that 'closes' the lantern
 
-The embers and wisps are part of the fire simulation and are handled by the half ring. The embers are a constant flickering glow, while the wisps are patches of light that sweep up the lantern.
-The shutter is an independent control triggered by a button that 'closes' the lantern.
+These are classes that simulate the current state of the ember, wisps, and shutter and then apply that state to our Pixels. We then do a final transformation from our Pixels to reverse half of the slices to be able to set the values to our Neopixels.
+
+## Future Improvements
+1. Make the simulation classes state-free functions
+2. Have the Pixels class handle the transformation to Neopixel indices
 
 ## Components
 - [Adafruit Kee Boar (KB2040)](https://www.adafruit.com/product/5302)
