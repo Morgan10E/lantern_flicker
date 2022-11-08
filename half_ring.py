@@ -1,62 +1,115 @@
 import random
 import math
 
-class Wisp:
-    def __init__(self, size, timeElapsed, wispSpeed):
-        self.size = size
-        self.wispStart = timeElapsed
-        self.wispSpeed = wispSpeed # pixels per second
-
-    def getPosition(self, timeElapsed):
-        return -self.size + math.floor((timeElapsed - self.wispStart) * self.wispSpeed)  
-
-
-class FireFlicker:
-    def __init__(self, numPixels, maxWispSize, emberHeight, wispSpeed, wispRate):
-        self.pixels = [(0,0,0)] * numPixels
+class Context:
+    def __init__(self, maxWispSize, numPixels, wispTime, wispRate, emberHeight, shutterPin, timeStep, shutterTime):
         self.maxWispSize = maxWispSize
+        self.numPixels = numPixels
+        self.wispTime = wispTime
+        self.wispRate = wispRate
+        self.emberHeight = emberHeight
+        self.shutterPin = shutterPin
+        self.timeStep = timeStep
+        self.shutterTime = shutterTime
+
+class Pixels:
+    def __init__(self, context):
+        self.numPixels = context.numPixels
+        self.pixels = [(0,0,0)] * context.numPixels
+
+    def clear(self):
+        self.pixels = [(0,0,0)] * self.numPixels
+
+    def set(self, index, value):
+        self.pixels[index] = value
+
+class Wisp:
+    def __init__(self, context):
+        self.wispSpeed = context.numPixels / context.wispTime # pixels per second
+
+    def reset(self, timeElapsed, size):
+        self.size = size
+        self.position = -self.size
+        self.wispStart = timeElapsed
+
+    def getPosition(self):
+        return self.position
+
+    def setPosition(self, timeElapsed):
+        self.position = -self.size + math.floor((timeElapsed - self.wispStart) * self.wispSpeed)
+
+class WispManager:
+    def __init__(self, context):
+        self.context = context
         self.wisps = []
         self.lastWispTime = 0
+        self.wispPool = []
 
-        self.emberHeight = emberHeight
-        self.wispSpeed = numPixels / wispSpeed
-        self.wispRate = wispRate
+    @property
+    def wispRate(self):
+        return self.context.wispRate
 
-    def clearPixels(self):
-        for i in range(len(self.pixels)):
-            self.pixels[i] = (0,0,0)
+    @property
+    def maxWispSize(self):
+        return self.context.maxWispSize
 
-    def applyEmbers(self, timeElapsed):
-        magnitude = math.sin(2 * math.pi * timeElapsed) * math.sin(2 * math.pi * timeElapsed * 9.123)
-        emberPixels = math.ceil(self.emberHeight * len(self.pixels))
-        for i in range(emberPixels):
-            self.pixels[i] = (0, 40 + 20 * magnitude, 0)
-        for i in range(emberPixels, len(self.pixels)):
-            glow = 10 + 5 * magnitude
-            self.pixels[i] = (0, (len(self.pixels) - i) * glow / len(self.pixels), 0)
-        
-    def addNewWisp(self, timeElapsed):
-        if timeElapsed - self.lastWispTime - random.uniform(-self.wispRate / 2, self.wispRate / 2) > self.wispRate:
-            self.lastWispTime = timeElapsed
-            wispSize = random.randint(1, self.maxWispSize)
-            self.wisps.append(Wisp(wispSize, timeElapsed, self.wispSpeed))
-
-    def applyWisps(self, timeElapsed):
+    def step(self, timeElapsed):
         keepWisps = []
         
         for wisp in self.wisps:
-            wispMin = max(wisp.getPosition(timeElapsed), 0)
-            if wispMin > len(self.pixels):
+            wisp.setPosition(timeElapsed)
+            wispMin = max(wisp.getPosition(), 0)
+            if wispMin > self.context.numPixels:
+                self.wispPool.append(wisp)
                 continue
-            wispMax = min(wisp.getPosition(timeElapsed) + wisp.size, len(self.pixels))
-            for i in range(wispMin, wispMax):
-                self.pixels[i] = (0, 255, 0)
             keepWisps.append(wisp)
+
         self.wisps = keepWisps
+
+        if timeElapsed - self.lastWispTime - random.uniform(-self.wispRate / 2, self.wispRate / 2) > self.wispRate:
+            self.lastWispTime = timeElapsed
+            wispSize = random.randint(1, self.maxWispSize)
+            if len(self.wispPool) > 0:
+                wisp = self.wispPool.pop()
+            else:
+                wisp = Wisp(self.context)
+            wisp.reset(timeElapsed, wispSize)
+            self.wisps.append(wisp)
+
+    def apply(self, pixels):
+        if self.context.numPixels != len(pixels.pixels):
+            raise Exception("can't apply wisps to different sized pixels")
+
+        for wisp in self.wisps:
+            wispMin = max(wisp.getPosition(), 0)
+            wispMax = min(wisp.getPosition() + wisp.size, self.context.numPixels)
+            
+            for i in range(wispMin, wispMax):
+                pixels.set(i, (0, 255, 0))
         
-    def getFlicker(self, timeElapsed):
-        self.clearPixels()
-        self.applyEmbers(timeElapsed)
-        self.addNewWisp(timeElapsed)
-        self.applyWisps(timeElapsed)
-        return self.pixels
+
+class Embers:
+    def __init__(self, context):
+        self.context = context
+
+        self.magnitude = 0
+
+    @property
+    def numPixels(self):
+        return self.context.numPixels
+
+    @property
+    def emberHeight(self):
+        return self.context.emberHeight
+
+    def step(self, timeElapsed):
+        self.magnitude = math.sin(2 * math.pi * timeElapsed) * math.sin(2 * math.pi * timeElapsed * 9.123)
+        
+    def apply(self, pixels):
+        emberPixels = math.ceil(self.emberHeight * self.numPixels)
+        for i in range(emberPixels):
+            pixels.set(i, (0, 40 + 20 * self.magnitude, 0))
+        for i in range(emberPixels, self.numPixels):
+            glow = 10 + 5 * self.magnitude
+            pixels.set(i, (0, (self.numPixels - i) * glow / self.numPixels, 0))
+
