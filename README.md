@@ -2,6 +2,22 @@
 ## Backstory
 This was a project for a Halloween costume (many great projects are for Halloween costumes) where I needed a cool spooky lantern with green fire. Initially the plan was to do an LED grid and animate the fire - I had a whole [proof-of-concept](https://github.com/Morgan10E/flicker_sim) and everything - but mounting the LEDs in a grid bi-directionally in a metal lantern clearly not meant for it proved to be too challenging. So ring lighting was the next best thing.
 
+<div align="center">
+    <img width="500" height="500" alt="Stand still" src="https://github.com/user-attachments/assets/cd432d7b-588d-4966-9aa3-904afdd15b35" />
+</div>
+
+<table>
+  <tr>
+    <td>
+      <img width="420" height="420" alt="Turn around" src="https://github.com/user-attachments/assets/d39eb52d-68d3-428f-956f-2549a6558e72" />
+    </td>
+    <td>
+      <img width="478" height="478" alt="Adobe Express - IMG_0409 (1)" src="https://github.com/user-attachments/assets/ef6666db-7fba-468f-838e-6f9983448ec5" />
+    </td>
+  </tr>
+</table>
+
+
 ## Overview
 This project assumes the LEDs are arrayed in rings, with the LED string beginning and ending at the bottom. Each half strip is simulated independently to get a nice random flickering effect. The half ring of pixels are managed by the Pixels class (which is currently basically just a wrapper on an array, with 0 being the pixel index at the bottom of the lantern and HALF_RING - 1 being the index of the pixel at the top). There are three key portions of the simulation that operate on our Pixels:
 1. Embers - a constant flickering glow
